@@ -1,6 +1,5 @@
 require 'singleton'
 require 'savon'
-require 'pry'
 
 module Zuora
 

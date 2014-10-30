@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry'
 describe Zuora::Api do
   before do
     Singleton.__init__(Zuora::Api) #This resets the Zuora::Api singleton to prevent configuration from leaking between tests
