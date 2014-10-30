@@ -1,5 +1,6 @@
 require 'singleton'
 require 'savon'
+require 'pry'
 
 module Zuora
 
@@ -18,7 +19,9 @@ module Zuora
       savon.log = opts[:logger] ? true : false
     end
 
-    if Api.instance.config.sandbox
+    if Api.instance.config.wsdl
+      Api.instance.wsdl!
+    elsif Api.instance.config.sandbox
       Api.instance.sandbox!
     end
   end
@@ -50,6 +53,12 @@ module Zuora
     def sandbox!
       @client = nil
       self.class.instance.client.wsdl.document = SANDBOX_WSDL
+    end
+
+    # Change client to custom wsdl
+    def wsdl!
+      @client = nil
+      self.class.instance.client.wsdl.document = Api.instance.config.wsdl
     end
 
     # The XML that was transmited in the last request
@@ -108,6 +117,7 @@ module Zuora
     def make_client
       Savon::Client.new do
         wsdl.document = defined?(ZUORA_WSDL) ? ZUORA_WSDL : PRODUCTION_WSDL
+        # wsdl.document = config.wsdl
         http.auth.ssl.verify_mode = :none
       end
     end

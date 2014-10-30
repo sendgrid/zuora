@@ -1,6 +1,10 @@
 require 'spec_helper'
-
+require 'pry'
 describe Zuora::Api do
+  before do
+    Singleton.__init__(Zuora::Api) #This resets the Zuora::Api singleton to prevent configuration from leaking between tests
+  end
+
   describe "configuration" do
     before do
       Zuora::Api.any_instance.stub(:authenticated?).and_return(true)
@@ -17,6 +21,23 @@ describe Zuora::Api do
     it "can be configured to use sandbox WSDL" do
       Zuora.configure(:username => 'example', :password => 'test', :sandbox => true)
       Zuora::Api.instance.client.wsdl.endpoint.to_s.should == "https://apisandbox.zuora.com/apps/services/a/40.0"
+    end
+
+    it "can be configured to use production WSDL" do
+      Zuora.configure(:username => 'example', :password => 'test', :sandbox => false)
+      Zuora::Api.instance.client.wsdl.endpoint.to_s.should == "https://www.zuora.com/apps/services/a/40.0"
+    end
+
+    it "can be configured with a custom WSDL" do
+      staging_wsdl = File.expand_path('spec/fixtures/staging.wsdl')
+      Zuora.configure(:username => 'example', :password => 'test', :wsdl => staging_wsdl, :sandbox => false)
+      Zuora::Api.instance.client.wsdl.endpoint.to_s.should == 'https://services33.zuora.com/apps/services/a/48.0'
+    end
+
+    it "A custom WSDL configuration overrides sandbox" do
+      staging_wsdl = File.expand_path('spec/fixtures/staging.wsdl')
+      Zuora.configure(:username => 'example', :password => 'test', :wsdl => staging_wsdl, :sandbox => true)
+      Zuora::Api.instance.client.wsdl.endpoint.to_s.should == 'https://services33.zuora.com/apps/services/a/48.0'
     end
 
     it "can be configured multiple times" do
